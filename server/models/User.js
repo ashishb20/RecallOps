@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema({
 
 
 // Index for fast queries
-userSchema.index({email:1}),
+userSchema.index({ email:1});
 userSchema.index({ username:1});
 
 const user = mongoose.model('User', userSchema);
