@@ -23,41 +23,14 @@ api.interceptors.request.use(
     }
 );
 api.interceptors.response.use(
-    (response) => {
-        // Return successful response
-        return response ;
-    },
+    (response) => response,
     (error) => {
-        // Handle specific error cases
-        if(error.response) {
-            const { status } = error.response
-            // Server responded with error status;
-            switch (status) {
-                case 401:
-                    // UNauthorized - token expired or invalid
-                    localStorage.removeItem('token');
-                    localStorage.removeItem('user');
-                    // Redirect to login 
-                    window.location.href = '/login';
-                    break;
-                case 403:
-                    // User doesn't have permission
-                    console.error('Access forbidden');
-                    break;
-                case 404:
-                    // Not found
-                    console.error('Resource Not found');
-                    break;
-                case 500:
-                    console.error('Server error');
-                    break; 
-                default:
-                    console.error('API error:' , error.response.data);
+        if(error.response?.status === 401) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            if(!window.location.pathname.includes('/login')) {
+                window.location.href = '/login';
             }
-        } else if (error.request) {
-            console.error('Network error - please check your connection');
-        } else {
-            console.error('Error:', error.message);
         }
         return Promise.reject(error);
     }
