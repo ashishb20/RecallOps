@@ -1,0 +1,20 @@
+# Root .gitignore:
+node_modules/
+.env
+.DS_Store
+*.log
+
+# Server .gitignore:
+node_modules/
+.env
+*.log
+
+# Client .gitignore:
+node_modules/
+.env
+dist/
+build/
+.DS_Store
+*.log
+
+issues.md 

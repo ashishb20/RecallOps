@@ -86,7 +86,7 @@ taskSchema.methods.calculateNextReview = function() {
             now.setDate(now.getDate() + 7); // 7 days
             break;
         case 3 : 
-            this.completed = true;;
+            this.completed = true;
             return null;
         default:
             now.setDate(now.getDate() + 1);

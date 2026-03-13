@@ -2,6 +2,8 @@ import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+const signToken = (userId) => 
+  jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
 //  Register - Create new user account
 
 export const register = async (req, res) => {
