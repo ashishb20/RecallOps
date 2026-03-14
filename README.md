@@ -8,6 +8,7 @@ Most  peopler try to combat this by :
 - Writing notes in static markdown files that gather dust
 
 ### Forgetting Curve
+<img width="1184" height="832" alt="Image" src="https://github.com/user-attachments/assets/a40d9b09-b08d-43c2-90b6-4ce2b61410cc" />
 
 ## The Solution: RecallOps
 RecallOps is a specialized learning task manager built specifically to conquer the forgetting curve. By implementing the proven **1-4-7 Spaced Repetition Method**, RecallOps automates the scheduling of review sessions. 
