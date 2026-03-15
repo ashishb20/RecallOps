@@ -2,8 +2,8 @@ import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-const signToken = (userId) => 
-  jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
+// const signToken = (userId) => 
+//   jwt.sign({ userId }, process.env.JWT_SECRET, { expiresIn: '7d' });
 //  Register - Create new user account
 
 export const register = async (req, res) => {
@@ -85,8 +85,8 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const {email, password} = req.body;
-    if(!email || !password) {
+    const { email, password } = req.body;
+    if (!email || !password) {
       return res.status(400).json({
         error: 'Please provide email and password'
       });
@@ -94,7 +94,7 @@ export const login = async (req, res) => {
 
     // Find user by email
     const user = await User.findOne({ email: email.toLowerCase() });
-    if(!user) {
+    if (!user) {
       return res.status(401).json({
         error: 'Invalid email or password'
       });
@@ -103,7 +103,7 @@ export const login = async (req, res) => {
     //  Compare provided password with stored hashed password
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
-    if(!isPasswordValid) {
+    if (!isPasswordValid) {
       console.log('Invalid password attempt');
       return res.status(401).json({
         error: 'Invalid email or password'
@@ -113,7 +113,7 @@ export const login = async (req, res) => {
 
     // Generate JWT token 
     const token = jwt.sign(
-      { userId: user._id},
+      { userId: user._id },
       process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
@@ -121,8 +121,8 @@ export const login = async (req, res) => {
     res.status(200).json({
       message: 'Login successful',
       user: {
-        _id:user._id,
-        username:user.username,
+        _id: user._id,
+        username: user.username,
         email: user.email,
         createdAt: user.createdAt
       },
@@ -141,7 +141,7 @@ export const login = async (req, res) => {
 export const getCurrentUser = async (req, res) => {
   try {
     const user = await User.findById(req.userId).select('-password');
-    if(!user) {
+    if (!user) {
       return res.status(404).json({
         error: 'User not found'
       });
@@ -153,7 +153,7 @@ export const getCurrentUser = async (req, res) => {
         email: user.email,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt
-       }
+      }
     });
   } catch (error) {
     console.error('Get current user error:', error);

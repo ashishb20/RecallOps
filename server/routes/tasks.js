@@ -8,11 +8,13 @@ import {
     markAsReviewed,
     updateTask,
     deleteTask,
-    getTaskStats
+    getTaskStats,
+    getDashboardData
 } from '../controllers/taskController.js';
 import { authMiddleware } from '../middleware/auth.js';
 const router = express.Router();
 
+router.get('/dashboard', authMiddleware, getDashboardData);
 router.post('/', authMiddleware, createTask);
 
 router.get('/', authMiddleware, getAllTasks);

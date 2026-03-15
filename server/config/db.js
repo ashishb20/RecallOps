@@ -2,13 +2,6 @@ import mongoose from "mongoose";
 
 const connectDB = async () => {
   try {
-    // const options = {
-    //   useNewUrlParser: true,
-    //   UseUnifiedTopology: true,
-    //   serverSelectionTimeoutMS: 5000,
-    //   socketTimeoutMS: 45000,
-    // };
-
     // Connect to MongoDB
     const conn = await mongoose.connect(process.env.MONGO_URI);
     console.log(`MongoDB Connected: ${conn.connection.host}`);

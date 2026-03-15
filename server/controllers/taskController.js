@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import Task from '../models/Task.js';
 import { getToday, getTomorrow, calculateNextReviewDate, getDaysUntil } from '../utils/dateHelper.js';
 
@@ -5,7 +6,7 @@ export const createTask = async (req, res) => {
     try {
         const { title, description, category } = req.body;
         const userId = req.userId;
-        if(!title || title.trim() === ''){
+        if (!title || title.trim() === '') {
             return res.status(400).json({
                 error: 'Task title is required'
             });
@@ -36,16 +37,17 @@ export const createTask = async (req, res) => {
 
 export const getAllTasks = async (req, res) => {
     try {
-         const userId = req.userId;
-         const { completed } = req.query;
+        const userId = req.userId;
+        const { completed } = req.query;
         //  Build query 
-         const query = { user: userId };
-         if (completed !== undefined) {
-            query.completed = completed ==='true';
-         }
-        //   get tasks, sort by nextReviewDate (earliest first)
+        const query = { user: userId };
+        if (completed !== undefined) {
+            query.completed = completed === 'true';
+        }
+        //   get tasks, sort by nextReviewDate 
         const tasks = await Task.find(query)
-        .sort({ nextReviewDate: 1, createdAt: -1});
+            .lean()
+            .sort({ nextReviewDate: 1, createdAt: -1 });
         res.status(200).json({
             count: tasks.length,
             tasks
@@ -62,9 +64,9 @@ export const getAllTasks = async (req, res) => {
 
 export const getTodayReviews = async (req, res) => {
     try {
-         const userId = req.userId;
-         const today = getToday();
-         const tomorrow = getTomorrow()
+        const userId = req.userId;
+        const today = getToday();
+        const tomorrow = getTomorrow()
 
         //  find tasks whose nextReviewDate is today
         const tasks = await Task.find({
@@ -74,7 +76,7 @@ export const getTodayReviews = async (req, res) => {
                 $gte: today,
                 $lt: tomorrow
             }
-        }).sort({ createdAt : -1 });
+        }).lean().sort({ createdAt: -1 });
         console.log(`Found ${tasks.length} tasks for today`);
         res.status(200).json({
             count: tasks.length,
@@ -90,23 +92,22 @@ export const getTodayReviews = async (req, res) => {
 
 // Get upcoming reviews
 export const getUpcomingReviews = async (req, res) => {
-    try{
+    try {
         const userId = req.userId;
         const tomorrow = getTomorrow();
         // find task schedule after today
         const tasks = await Task.find({
             user: userId,
-            completed:false,
+            completed: false,
             nextReviewDate: { $gte: tomorrow }
-        }).sort({ nextReviewDate : 1 });
-        // Add 'Days until ' info for frontend
+        }).lean().sort({ nextReviewDate: 1 });
         const tasksWithDaysUntil = tasks.map(task => ({
-            ...task.toObject(),
-            daysUntil:getDaysUntil(task.nextReviewDate)
+            ...task,
+            daysUntil: getDaysUntil(task.nextReviewDate)
         }));
         console.log(`Found ${tasks.length} upcoming reviews`);
         res.status(200).json({
-            count:tasks.length,
+            count: tasks.length,
             tasks: tasksWithDaysUntil
         });
     } catch (error) {
@@ -122,10 +123,10 @@ export const getTaskById = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.userId;
-        const task = await Task.findOne({ _id: id, user:userId });
-        if(!task) {
+        const task = await Task.findOne({ _id: id, user: userId }).lean();
+        if (!task) {
             return res.status(404).json({
-                error:'Task not found'
+                error: 'Task not found'
             });
         }
         res.status(200).json({ task });
@@ -140,17 +141,17 @@ export const getTaskById = async (req, res) => {
 // Mark as Reviewed
 export const markAsReviewed = async (req, res) => {
     try {
-        const { id}  = req.params;
+        const { id } = req.params;
         const userId = req.userId;
         const task = await Task.findOne({ _id: id, user: userId });
-        if(!task ) {
+        if (!task) {
             return res.status(404).json({
                 error: 'Task not found'
             });
         }
 
         // check if task already completed
-        if(task.completed) {
+        if (task.completed) {
             return res.status(400).json({
                 error: 'Task is already completed'
             });
@@ -158,11 +159,11 @@ export const markAsReviewed = async (req, res) => {
         // Update review data
         task.reviewCount += 1;
         task.lastReviewedAt = new Date();
-        task.reviewStage += 1 ;
+        task.reviewStage += 1;
         // calculate next review date based on new stage
 
-        if(task.reviewStage >= 3) {
-            task.completed = true ;
+        if (task.reviewStage >= 3) {
+            task.completed = true;
             task.nextReviewDate = null;
             console.log('Task completed:', task.title);
         } else {
@@ -173,9 +174,9 @@ export const markAsReviewed = async (req, res) => {
         // save changes
         await task.save();
         res.status(200).json({
-            message:task.completed
-            ? 'Task completed! All reviews done'
-            : 'Task marked as review',
+            message: task.completed
+                ? 'Task completed! All reviews done'
+                : 'Task marked as review',
             task
         });
     } catch (error) {
@@ -194,21 +195,21 @@ export const updateTask = async (req, res) => {
         const { title, description, category } = req.body;
         //  find task 
         const task = await Task.findOne({ _id: id, user: userId });
-        if(!task) {
+        if (!task) {
             return res.status(404).json({
                 error: 'Task not found'
             });
         }
 
         // Update fields if provided 
-        if(title !== undefined) task.title = title.trim();
-        if(description !== undefined) task.description = description.trim();
-        if(category !== undefined) task.category = category.trim();
+        if (title !== undefined) task.title = title.trim();
+        if (description !== undefined) task.description = description.trim();
+        if (category !== undefined) task.category = category.trim();
         await task.save();
         console.log('Task updated:', task.title);
         res.status(200).json({
             message: 'Task updated successfully',
-            task 
+            task
         });
     } catch (error) {
         console.error('Update task error:', error);
@@ -219,23 +220,23 @@ export const updateTask = async (req, res) => {
 };
 
 // Delete task 
-export const deleteTask = async ( req, res) => {
+export const deleteTask = async (req, res) => {
     try {
-        const { id }= req.params
+        const { id } = req.params
         const userId = req.userId;
-        const task = await Task.findOneAndDelete({ _id: id, user:userId });
+        const task = await Task.findOneAndDelete({ _id: id, user: userId });
 
-        if(!task) {
+        if (!task) {
             return res.status(404).json({
                 error: 'Task not found'
             });
         }
         console.log('Task deleted:', task.title);
         res.status(200).json({
-            message:'Task deleted successfully',
-            taskId:id
+            message: 'Task deleted successfully',
+            taskId: id
         });
-    }catch (error) {
+    } catch (error) {
         console.error('Delete task error:', error);
         res.status(500).json({
             error: 'Failed to delete task'
@@ -250,12 +251,12 @@ export const getTaskStats = async (req, res) => {
         const userId = req.userId;
         const [total, completed, todayCount] = await Promise.all([
             Task.countDocuments({ user: userId }),
-            Task.countDocuments({ user:userId, completed:true }),
+            Task.countDocuments({ user: userId, completed: true }),
             Task.countDocuments({
-                user:userId,
-                completed:false,
+                user: userId,
+                completed: false,
                 nextReviewDate: {
-                    $gte:getToday(),
+                    $gte: getToday(),
                     $lt: getTomorrow()
                 }
             })
@@ -266,14 +267,66 @@ export const getTaskStats = async (req, res) => {
                 total,
                 active,
                 completed,
-                todayReviews:todayCount,
-                completionRate: total > 0 ? Math.round((completed / total ) * 100) : 0
+                todayReviews: todayCount,
+                completionRate: total > 0 ? Math.round((completed / total) * 100) : 0
             }
         });
     } catch (error) {
         console.error('Get stats error:', error);
         res.status(500).json({
-            error:'Failed to fetch statistics'
+            error: 'Failed to fetch statistics'
         });
+    }
+};
+
+export const getDashboardData = async (req, res) => {
+    try {
+        const userId = new mongoose.Types.ObjectId(req.userId);
+        const today = getToday();
+        const tomorrow = getTomorrow();
+
+        const [results] = await Task.aggregate([
+            { $match: { user: userId } },
+            {
+                $facet: {
+                    total: [{ $count: "count" }],
+                    completed: [{ $match: { completed: true } }, { $count: "count" }],
+                    todayReviews: [
+                        { $match: { completed: false, nextReviewDate: { $gte: today, $lt: tomorrow } } },
+                        { $sort: { createdAt: -1 } }
+                    ],
+                    upcomingReviews: [
+                        { $match: { completed: false, nextReviewDate: { $gte: tomorrow } } },
+                        { $sort: { nextReviewDate: 1 } }
+                    ]
+                }
+            }
+        ]);
+
+        const totalCount = results.total[0]?.count || 0;
+        const completedCount = results.completed[0]?.count || 0;
+        const todayTasks = results.todayReviews || [];
+        const upcomingTasks = results.upcomingReviews.map(task => ({
+            ...task,
+            _id: task._id.toString(),
+            daysUntil: getDaysUntil(task.nextReviewDate)
+        }));
+
+        res.status(200).json({
+            todayData: { tasks: todayTasks },
+            upcomingData: { tasks: upcomingTasks },
+            statsData: {
+                stats: {
+                    total: totalCount,
+                    active: totalCount - completedCount,
+                    completed: completedCount,
+                    todayReviews: todayTasks.length,
+                    completionRate: totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Get dashboard data error:', error);
+        res.status(500).json({ error: 'Failed to fetch dashboard data' });
     }
 };

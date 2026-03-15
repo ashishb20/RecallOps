@@ -43,16 +43,15 @@ const taskSchema = new mongoose.Schema({
     },
     lastReviewedAt: {
         type: Date,
-        default: Date.now()
+        default: Date.now
 
     },
     nextReviewDate: {
         type: Date,
-        required: true,
-        default: function() {
+        default: function () {
             const tomorrow = new Date();
             tomorrow.setDate(tomorrow.getDate() + 1);
-            tomorrow.setHours(0,0,0,0);
+            tomorrow.setHours(0, 0, 0, 0);
             return tomorrow;
         }
     },
@@ -71,37 +70,39 @@ taskSchema.index({ user: 1, completed: 1 });
 taskSchema.index({ nextReviewDate: 1 });
 
 //  Calculate next review date based on current stage 
-taskSchema.methods.calculateNextReview = function() {
+taskSchema.methods.calculateNextReview = function () {
     const now = new Date();
-    now.setHours(0,0,0,0);
+    now.setHours(0, 0, 0, 0);
 
-    switch(this.reviewStage) {
-        case 0 : 
+    switch (this.reviewStage) {
+        case 0:
             now.setDate(now.getDate() + 1); // 1 day
             break;
-        case 1 :
-            now.getDate() + 4; // 4 days
+        case 1:
+            now.setDate(now.getDate() + 3); // 3 days
             break;
-        case 2: 
+        case 2:
             now.setDate(now.getDate() + 7); // 7 days
             break;
-        case 3 : 
+        case 3:
             this.completed = true;
             return null;
         default:
             now.setDate(now.getDate() + 1);
     }
-    return now ;
+    return now;
 }
 //  Mark task as reviewed
 
-taskSchema.methods.markAsReviewed = function() {
-    this.reviewCount += 1 ;
+taskSchema.methods.markAsReviewed = function () {
+    this.reviewCount += 1;
     this.lastReviewedAt = new Date();
 
-    this.reviewStage += 1;
+    if (this.reviewStage < 3) {
+        this.reviewStage += 1;
+    }
 
-    if(this.reviewStage >= 1) {
+    if (this.reviewStage >= 3) {
         this.completed = true;
         this.nextReviewDate = null;
     } else {

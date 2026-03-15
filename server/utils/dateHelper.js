@@ -64,7 +64,7 @@ export const calculateNextReviewDate = (currentStage) => {
         case 0 :
             return addDays(today, 1);
         case 1 :
-            return addDays(today, 4);
+            return addDays(today, 3);
         case 2:
             return addDays(today, 7);
         case 3:
