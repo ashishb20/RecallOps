@@ -16,9 +16,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  /**
-   * Handle input changes
-   */
+  
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -28,9 +26,6 @@ const Login = () => {
     if (error) setError('');
   };
 
-  /**
-   * Handle form submission
-   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -51,7 +46,7 @@ const Login = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         
-        {/* Logo/Header */}
+        {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-500 to-primary-600 rounded-2xl mb-4">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

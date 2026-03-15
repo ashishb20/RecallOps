@@ -71,7 +71,7 @@ const AddTaskModal = ({ isOpen, onClose, onTaskAdded }) => {
           {/* Title */}
           <div>
             <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-              Task Title *
+              Task Title 
             </label>
             <input
               type="text"

@@ -1,10 +1,4 @@
 import api from './api';
-
-/**
- * TASK SERVICE
- * All task-related API calls
- */
-
 // Create new task
 export const createTask = async (taskData) => {
   try {
@@ -42,6 +36,16 @@ export const getUpcomingReviews = async () => {
     return response.data;
   } catch (error) {
     throw error.response?.data || { error: 'Failed to fetch upcoming reviews' };
+  }
+};
+
+// Get unified dashboard data
+export const getDashboardData = async () => {
+  try {
+    const response = await api.get('/api/tasks/dashboard');
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { error: 'Failed to fetch dashboard data' };
   }
 };
 

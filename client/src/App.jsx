@@ -1,9 +1,11 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import { AuthProvider } from "./context/AuthContext"
 import { useAuth } from "./hooks/useAuth"
+
 import Login from "./pages/Login"
 import Register from "./pages/Register"
 import Dashboard from "./pages/Dashboard"
+import ErrorBoundary from "./components/ErrorBoundary"
 
 
 const ProtectedRoute = ({ children }) => {
@@ -27,13 +29,13 @@ const PublicRoute = ({ children }) => {
       </div>
     );
   }
-  return !isAuthenticated ? children : <Navigate to="/dashboard" replace />;
+  return isAuthenticated ? <Navigate to="/dashboard" replace /> : children;
 }
 
 const AppRoutes = () => {
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />;
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/login" element={
         <PublicRoute>
           <Login />
@@ -72,11 +74,14 @@ const AppRoutes = () => {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <AuthProvider>
+          <AppRoutes />
+        </AuthProvider>
+      </BrowserRouter>
+    </ErrorBoundary>
+
   );
 }
 export default App

@@ -25,8 +25,8 @@ const TaskCard = ({ task, onMarkReviewed, onDelete, isUpcoming = false }) => {
     <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200 group">
       <div className="flex justify-between items-start mb-3">
         {/* Stage Badge (Spaced Repetition Logic) */}
-        <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${getStageColor(task.stage)}`}>
-          Stage {task.stage || 0}
+        <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${getStageColor(task.reviewStage)}`}>
+          Stage {task.reviewStage ?? 0}
         </span>
         
         {/* Delete Action  */}

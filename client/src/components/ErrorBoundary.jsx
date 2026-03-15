@@ -25,14 +25,14 @@ class ErrorBoundary extends React.Component {
         });
 
     }
-    logErrorToService = (error, errorInfo) => {
-        const sanitizedError = {
-            message: error?.message || 'Unknown error',
-            stack: import.meta.env.DEV ? error?.stack : 'Stack trace hidden',
-            componentStack: import.meta.env.DEV ? errorInfo?.componentStack : 'Component stack hidden',
-            timeStamp: new Date().toISOString(),
-        };
-    };
+    // logErrorToService = (error, errorInfo) => {
+    //     const sanitizedError = {
+    //         message: error?.message || 'Unknown error',
+    //         stack: import.meta.env.DEV ? error?.stack : 'Stack trace hidden',
+    //         componentStack: import.meta.env.DEV ? errorInfo?.componentStack : 'Component stack hidden',
+    //         timeStamp: new Date().toISOString(),
+    //     };
+    // };
     handleReload = () => {
         this.setState({
             hasError: false,
@@ -91,9 +91,9 @@ class ErrorBoundary extends React.Component {
                                 Go Home
                             </button>
                         </div>
-                        <p className="text-xs text-gray-500 mt-6">
+                        {/* <p className="text-xs text-gray-500 mt-6">
                             If this problem persists, please contact support.
-                        </p>
+                        </p> */}
                     </div>
                 </div>
             );
