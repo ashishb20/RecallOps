@@ -141,7 +141,7 @@ const Timer = ({ onTimerComplete }) => {
                             className="px-3 py-1 text-sm bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-lg transition-all duration-200 border border-teal-200"
                             disabled={isRunning}
                         >
-                            {mins}m
+                            {mins}
                         </button>
                     ))}
                 </div>
@@ -156,8 +156,7 @@ const Timer = ({ onTimerComplete }) => {
                         pattern="[0-9]*"
                         value={customMinutes}
                         onChange={handleCustomMinutes}
-                        onKeyPress={(e) => {
-                            // Prevent non-numeric input
+                        onKeyUp={(e) => {
                             if (!/[0-9]/.test(e.key)) {
                                 e.preventDefault();
                             }
