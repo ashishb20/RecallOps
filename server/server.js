@@ -8,13 +8,20 @@ dotenv.config();
 
 const app = express();
 //  CORS : Allows fronted to communicate with backend
-
-app.use(cors());
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production' ? process.env.CLIENT_URL : ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  credentials: true,
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
 connectDB();
+
+app.get('/', (req, res) => {
+  res.status(200).json({ status: 'Success', message: 'RecallOps Server is running perfectly!' });
+});
 
 app.get('/api/health', (req, res) => {
   res.json({
