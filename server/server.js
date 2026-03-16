@@ -9,7 +9,23 @@ dotenv.config();
 const app = express();
 //  CORS : Allows fronted to communicate with backend
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' ? process.env.CLIENT_URL : ['http://localhost:5173', 'http://127.0.0.1:5173'],
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'http://localhost:5172',
+      'http://127.0.0.1:5172',
+      process.env.CLIENT_URL,
+    ];
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 };
 app.use(cors(corsOptions));
