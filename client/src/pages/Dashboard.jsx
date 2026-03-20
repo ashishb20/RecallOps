@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import useToast from "../hooks/useToast";
 import Navbar from "../components/Navbar";
 import AddTaskModal from '../components/AddTaskModal';
+import EditTaskModal from '../components/EditTaskModal';
 import TaskCard from '../components/TaskCard';
 import Timer from '../components/Timer';
 import ToastContainer from "../components/ToastContainer";
@@ -24,6 +25,7 @@ const Dashboard = () => {
   const [stats, setStats] = useState({ total: 0, active: 0, completed: 0, todayReviews: 0, completionRate: 0 });
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
 
   const [dailyTodos, setDailyTodos] = useState(() => {
     const saved = localStorage.getItem("daily_checklist");
@@ -39,7 +41,7 @@ const Dashboard = () => {
     try {
       setLoading(true);
       const data = await getDashboardData();
-      
+
       setTodayTasks(data?.todayData?.tasks || []);
       setUpcomingTasks(data?.upcomingData?.tasks || []);
       setStats(data?.statsData?.stats || { total: 0, active: 0, completed: 0, todayReviews: 0, completionRate: 0 });
@@ -80,6 +82,14 @@ const Dashboard = () => {
   const handleTaskAdded = () => {
     showSuccess('New task added!');
     fetchData();
+  };
+
+  const handleEdit = (task) => setEditingTask(task);
+
+  const handleTaskUpdated = () => {
+    showSuccess('Task updated!');
+    fetchData();
+    setEditingTask(null);
   };
 
   // Checklist Helpers
@@ -169,6 +179,9 @@ const Dashboard = () => {
             <div className="bg-teal-600 p-4 text-white flex justify-between">
               <h2 className="font-bold">Today's Reviews</h2>
               <span className="bg-white/20 px-2 py-0.5 rounded-full text-xs">{todayTasks.length}</span>
+              {/* <p className="font-bold">
+              {new Date().toLocaleDateString('en-US', {weekday: 'long', month: 'short', day: 'numeric'})}
+              </p> */}
             </div>
             <div className="p-5 h-[500px] overflow-y-auto space-y-4">
               {todayTasks.map(task => (
@@ -177,6 +190,7 @@ const Dashboard = () => {
                   task={task}
                   onMarkReviewed={handleMarkReviewed}
                   onDelete={handleDelete}
+                  onEdit={handleEdit}
                 />
               ))}
             </div>
@@ -195,6 +209,7 @@ const Dashboard = () => {
                   isUpcoming={true}
                   onMarkReviewed={handleMarkReviewed}
                   onDelete={handleDelete}
+                  onEdit={handleEdit}
                 />
               ))}
             </div>
@@ -203,6 +218,12 @@ const Dashboard = () => {
       </main>
 
       <AddTaskModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onTaskAdded={handleTaskAdded} />
+      <EditTaskModal
+        isOpen={!!editingTask}
+        task={editingTask}
+        onClose={() => setEditingTask(null)}
+        onTaskUpdated={handleTaskUpdated}
+      />
     </div>
   );
 };
