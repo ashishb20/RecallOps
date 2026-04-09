@@ -1,19 +1,21 @@
 
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
-const Navbar = () => {
-    const { user, logout } = useAuth();
-    const navigate = useNavigate() ;
-    const handleLogout = () => {
-        logout() ;
-        navigate('/login');
-    };
+import TaskDropdown from './TaskDropdown';
 
-    return (
+const Navbar = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  return (
     <nav className="bg-white shadow-sm border-b sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          
+
           {/* Logo */}
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg flex items-center justify-center">
@@ -26,16 +28,17 @@ const Navbar = () => {
               <p className="text-xs text-gray-500">1-4-7 Learning Method</p>
             </div>
           </div>
-          
+
           {/* Right Side */}
-          <div className="flex items-center space-x-4"> 
+          <div className="flex items-center space-x-3">
             {/* User Info */}
             <div className="hidden sm:block text-right">
               <p className="text-sm font-medium text-gray-900">{user?.username}</p>
               <p className="text-xs text-gray-500">{user?.email}</p>
             </div>
-            
-            {/* Logout Button */}
+            <TaskDropdown />
+
+            {/* Logout */}
             <button
               onClick={handleLogout}
               className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium text-sm"
@@ -48,4 +51,4 @@ const Navbar = () => {
     </nav>
   );
 };
-export default Navbar ;
+export default Navbar;
