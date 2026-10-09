@@ -3,25 +3,50 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { BadRequestError, ConflictError, UnauthorizedError, NotFoundError } from '../utils/errors.js';
 
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax',
-  maxAge: 7 * 24 * 60 * 60 * 1000,
+export const isProductionEnvironment = () => {
+  return (
+    process.env.NODE_ENV === 'production' ||
+    process.env.RENDER === 'true' ||
+    Boolean(process.env.CLIENT_URL && process.env.CLIENT_URL.startsWith('https://'))
+  );
 };
 
-const signToken = (userId) => jwt.sign(
-  { userId },
-  process.env.JWT_SECRET,
-  { expiresIn: '7d' }
-);
-
-const setTokenCookie = (res, token) => {
-  res.cookie('token', token, COOKIE_OPTIONS);
+export const getCookieOptions = () => {
+  const isProduction = isProductionEnvironment();
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    path: '/',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  };
 };
 
-const clearTokenCookie = (res) => {
-  res.clearCookie('token', { ...COOKIE_OPTIONS, maxAge: 0 });
+export const getClearCookieOptions = () => {
+  const { maxAge, ...clearOptions } = getCookieOptions();
+  return clearOptions;
+};
+
+export const signToken = (userId) => {
+  if (!userId) {
+    throw new Error('User ID is required to generate token');
+  }
+  return jwt.sign(
+    { userId },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+};
+
+export const setTokenCookie = (res, token) => {
+  if (!token) {
+    throw new Error('Cannot set empty token cookie');
+  }
+  res.cookie('token', token, getCookieOptions());
+};
+
+export const clearTokenCookie = (res) => {
+  res.clearCookie('token', getClearCookieOptions());
 };
 
 export const register = async (req, res, next) => {

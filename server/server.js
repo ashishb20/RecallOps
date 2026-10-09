@@ -21,17 +21,19 @@ const logger = pino({
 });
 
 const app = express();
+app.set('trust proxy', 1);
 app.set('logger', logger);
 //  CORS : Allows frontend to communicate with backend — exact origins only
 const corsOptions = {
 
   origin: function (origin, callback) {
+    const clientUrl = process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/+$/, '') : null;
     const allowedOrigins = [
       'http://localhost:5173',
       'http://127.0.0.1:5173',
       'http://localhost:5172',
       'http://127.0.0.1:5172',
-      process.env.CLIENT_URL,
+      clientUrl,
     ].filter(Boolean);
     // Allow requests with no origin (mobile apps, curl)
     if (!origin) return callback(null, true);
