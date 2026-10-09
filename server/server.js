@@ -79,6 +79,8 @@ app.use((err, req, res, next) => {
     ...(process.env.NODE_ENV === 'development' ? { stack: err.stack } : {})
   });
 })
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
