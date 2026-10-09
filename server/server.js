@@ -1,11 +1,19 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
+import pino from "pino";
+import pinoHttp from "pino-http";
 import connectDB from "./config/db.js";
+import { errorHandler, notFoundHandler } from "./utils/errors.js";
 
 dotenv.config();
 
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET environment variable is not set');
+  process.exit(1);
+}
 const app = express();
 //  CORS : Allows fronted to communicate with backend
 const corsOptions = {
@@ -16,11 +24,10 @@ const corsOptions = {
       'http://localhost:5172',
       'http://127.0.0.1:5172',
       process.env.CLIENT_URL,
-    ];
-    // Allow requests with no origin (like mobile apps or curl requests)
+    ].filter(Boolean);
+    // Allow requests with no origin (mobile apps, curl)
     if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')) {
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
