@@ -5,30 +5,15 @@ const api = axios.create({
     headers: {
         'Content-Type': 'application/json',
     },
-    timeout:10000,
+    timeout: 10000,
+    withCredentials: true,
 });
 
-api.interceptors.request.use(
-    (config) => {
-        // Get token from local storage
-        const token = localStorage.getItem('token');
-        //  Add token to Authorization header if exists
-        if(token) {
-            config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-    },
-    (error) => {
-        return Promise.reject(error);
-    }
-);
 api.interceptors.response.use(
     (response) => response,
     (error) => {
-        if(error.response?.status === 401) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            if(!window.location.pathname.includes('/login')) {
+        if (error.response?.status === 401) {
+            if (!window.location.pathname.includes('/login')) {
                 window.location.href = '/login';
             }
         }
