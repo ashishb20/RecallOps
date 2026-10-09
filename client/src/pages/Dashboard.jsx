@@ -64,6 +64,7 @@ const Dashboard = () => {
       showSuccess('Progress saved!');
       await fetchData();
     } catch (err) {
+      console.error('Mark reviewed failed:', err);
       showError('Failed to update task.');
     }
   };
@@ -75,6 +76,7 @@ const Dashboard = () => {
       showSuccess('Task removed.');
       await fetchData();
     } catch (err) {
+      console.error('Delete failed:', err);
       showError('Delete failed.');
     }
   };

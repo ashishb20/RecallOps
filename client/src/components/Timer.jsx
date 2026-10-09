@@ -2,11 +2,12 @@ import { useState, useEffect, useRef } from "react";
 
 // Pomodoro style timer
 const Timer = ({ onTimerComplete }) => {
-    const [time, setTime] = useState(25 * 60); // 25 minutes default
+    const [time, setTime] = useState(25 * 60);
     const [totalTime, setTotalTime] = useState(25 * 60);
-    const [isRuning, setIsRuning] = useState(false);
+    const [isRunning, setIsRunning] = useState(false);
     const [customMinutes, setCustomMinutes] = useState('');
-    const intervalRef = useRef(null);;
+    const intervalRef = useRef(null);
+
     useEffect(() => {
         return () => {
             if (intervalRef.current) {
@@ -15,23 +16,21 @@ const Timer = ({ onTimerComplete }) => {
         };
     }, []);
 
-    // Timer logic 
-
     useEffect(() => {
-        if (isRuning && time > 0) {
-            intervalRef.current = setInterval(() => {
-                setTime((prevTime) => prevTime - 1);
-            }, 1000);
-        } else {
-            clearInterval(intervalRef.current);
-        }
-        // When timer hits zero
-        if (time === 0 && isRuning) {
-            setIsRuning(false);
-            if (onTimerComplete) onTimerComplete();
-        }
+        if (!isRunning || time <= 0) return;
+        intervalRef.current = setInterval(() => {
+            setTime((prev) => {
+                if (prev <= 1) {
+                    clearInterval(intervalRef.current);
+                    setIsRunning(false);
+                    if (onTimerComplete) onTimerComplete();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
         return () => clearInterval(intervalRef.current);
-    }, [isRuning, time]);
+    }, [isRunning, onTimerComplete]);
 
     // Format time display 
     const formatTime = (seconds) => {
@@ -52,7 +51,7 @@ const Timer = ({ onTimerComplete }) => {
         const seconds = minutes * 60;
         setTime(seconds);
         setTotalTime(seconds);
-        setIsRuning(false);
+        setIsRunning(false);
     };
 
     const applyCustomTime = () => {
@@ -62,7 +61,7 @@ const Timer = ({ onTimerComplete }) => {
             const seconds = minutes * 60;
             setTime(seconds);
             setTotalTime(seconds);
-            setIsRuning(false);
+            setIsRunning(false);
             setCustomMinutes('');
         } else {
             // Invalid input : clear it
@@ -70,11 +69,11 @@ const Timer = ({ onTimerComplete }) => {
         }
     };
     const toggleTimer = () => {
-        setIsRuning(!isRuning);
+        setIsRunning(!isRunning);
     };
 
     const resetTimer = () => {
-        setIsRuning(false);
+        setIsRunning(false);
         setTime(25 * 60);
         setTotalTime(25 * 60);
     };
@@ -112,13 +111,13 @@ const Timer = ({ onTimerComplete }) => {
             <div className="flex gap-2 mb-4">
                 <button
                     onClick={toggleTimer}
-                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-200 ${isRuning
+                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all duration-200 ${isRunning
                         ? 'bg-yellow-500 hover:bg-yellow-600 text-white'
                         : 'bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white'
                         }`}
                     disabled={time === 0}
                 >
-                    {isRuning ? 'Pause' : 'Start'}
+                    {isRunning ? 'Pause' : 'Start'}
                 </button>
                 <button
                     onClick={resetTimer}
@@ -137,7 +136,7 @@ const Timer = ({ onTimerComplete }) => {
                             key={mins}
                             onClick={() => setPresetTime(mins)}
                             className="px-3 py-1 text-sm bg-teal-50 hover:bg-teal-100 text-teal-700 rounded-lg transition-all duration-200 border border-teal-200"
-                            disabled={isRuning}
+                            disabled={isRunning}
                         >
                             {mins}
                         </button>
@@ -162,12 +161,12 @@ const Timer = ({ onTimerComplete }) => {
                         placeholder="Minutes"
                         maxLength="3"
                         className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
-                        disabled={isRuning}
+                        disabled={isRunning}
                     />
                     <button
                         onClick={applyCustomTime}
                         className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-white rounded-lg font-medium transition-all duration-200"
-                        disabled={isRuning || !customMinutes}
+                        disabled={isRunning || !customMinutes}
                     >
                         Set
                     </button>
