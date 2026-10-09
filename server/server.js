@@ -1,14 +1,30 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
+import pino from "pino";
+import pinoHttp from "pino-http";
 import connectDB from "./config/db.js";
+import { errorHandler, notFoundHandler } from "./utils/errors.js";
 
 dotenv.config();
 
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET environment variable is not set');
+  process.exit(1);
+}
+
+const logger = pino({
+  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+  transport: process.env.NODE_ENV !== 'production' ? { target: 'pino-pretty', options: { colorize: true } } : undefined,
+});
+
 const app = express();
-//  CORS : Allows fronted to communicate with backend
+app.set('logger', logger);
+//  CORS : Allows frontend to communicate with backend — exact origins only
 const corsOptions = {
+
   origin: function (origin, callback) {
     const allowedOrigins = [
       'http://localhost:5173',
@@ -16,11 +32,10 @@ const corsOptions = {
       'http://localhost:5172',
       'http://127.0.0.1:5172',
       process.env.CLIENT_URL,
-    ];
-    // Allow requests with no origin (like mobile apps or curl requests)
+    ].filter(Boolean);
+    // Allow requests with no origin (mobile apps, curl)
     if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')) {
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -31,20 +46,41 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(pinoHttp({ logger: app.get('logger') }));
 
 
-connectDB();
+const db = connectDB();
 
 app.get('/', (req, res) => {
   res.status(200).json({ status: 'Success', message: 'RecallOps Server is running perfectly!' });
 });
 
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'OK',
-    message: 'RecallOps API is Running',
+app.get('/api/health', async (req, res) => {
+  let dbStatus = 'disconnected';
+  let dbLatency = null;
+  try {
+    const start = Date.now();
+    await mongoose.connection.db.admin().ping();
+    dbLatency = Date.now() - start;
+    dbStatus = 'connected';
+  } catch {
+    dbStatus = 'error';
+  }
+
+  const healthy = dbStatus === 'connected';
+  const statusCode = healthy ? 200 : 503;
+
+  res.status(statusCode).json({
+    status: healthy ? 'healthy' : 'unhealthy',
     timestamp: new Date().toISOString(),
-    database: mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected'
+    uptime: process.uptime(),
+    database: {
+      status: dbStatus,
+      latencyMs: dbLatency,
+      readyState: mongoose.connection.readyState,
+    },
+    environment: process.env.NODE_ENV || 'development',
   });
 });
 
@@ -56,39 +92,34 @@ app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
 
 
-app.use((req, res) => {
-  res.status(404).json({
-    status: 'error',
-    message: `Route ${req.method} ${req.path} not found`
-  });
-});
-
-
-app.use((err, req, res, next) => {
-  console.error('Error:', err.stack);
-  res.status(err.status || 500).json({
-    status: 'error',
-    message: err.message || 'Something went wrong',
-    ...(process.env.NODE_ENV === 'development' ? { stack: err.stack } : {})
-  });
-})
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(` Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+const server = app.listen(PORT, () => {
+  logger.info({ port: PORT, env: process.env.NODE_ENV || 'development' }, 'Server running');
 });
 
-process.on('SIGINT', async () => {
-  console.log('Gracefully shutting down...');
-  await mongoose.connection.close();
-  console.log('MongoDB connection closed.');
-  process.exit(0);
-});
+const shutdown = async (signal) => {
+  logger.info({ signal }, 'Shutting down...');
+  server.close(async () => {
+    await mongoose.connection.close();
+    logger.info('MongoDB connection closed');
+    process.exit(0);
+  });
+  setTimeout(() => process.exit(1), 10000);
+};
+
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
 
 process.on('unhandledRejection', (err) => {
-  console.error('Unhandled Rejection:', err);
-  mongoose.connection.close();
-  process.exit(1);
+  logger.fatal({ err }, 'Unhandled Rejection');
+  shutdown('unhandledRejection');
+});
+
+process.on('uncaughtException', (err) => {
+  logger.fatal({ err }, 'Uncaught Exception');
+  shutdown('uncaughtException');
 });
