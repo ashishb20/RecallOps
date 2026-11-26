@@ -21,11 +21,6 @@ public class PreferenceService {
 
     private final DedupeLogRepository dedupeLogRepository;
 
-    /**
-     * Returns enabled channels for an event type.
-     * ponytail: hardcoded defaults, no user preference UI yet.
-     * Upgrade: add PreferenceRepository when a settings page exists.
-     */
     public Set<ChannelType> getEnabledChannels(EventType eventType) {
         return switch (eventType) {
             case USER_WELCOME -> EnumSet.of(ChannelType.EMAIL);
