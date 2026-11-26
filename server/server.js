@@ -7,6 +7,7 @@ import pino from "pino";
 import pinoHttp from "pino-http";
 import connectDB from "./config/db.js";
 import { errorHandler, notFoundHandler } from "./utils/errors.js";
+import { startDueTasksScheduler } from "./cron/taskDueCron.js";
 
 dotenv.config();
 
@@ -101,6 +102,9 @@ const PORT = process.env.PORT || 5000;
 
 const server = app.listen(PORT, () => {
   logger.info({ port: PORT, env: process.env.NODE_ENV || 'development' }, 'Server running');
+  if (process.env.NOTIFICATION_SERVICE_URL) {
+    startDueTasksScheduler(logger);
+  }
 });
 
 const shutdown = async (signal) => {

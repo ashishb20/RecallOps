@@ -2,6 +2,7 @@ import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { BadRequestError, ConflictError, UnauthorizedError, NotFoundError } from '../utils/errors.js';
+import { sendNotificationEvent } from '../utils/notificationClient.js';
 
 export const isProductionEnvironment = () => {
   return (
@@ -72,6 +73,19 @@ export const register = async (req, res, next) => {
 
     const token = signToken(user._id);
     setTokenCookie(res, token);
+
+    // Trigger welcome notification (non-blocking)
+    sendNotificationEvent({
+      eventType: 'USER_WELCOME',
+      entityId: user._id.toString(),
+      userId: user._id.toString(),
+      userEmail: user.email,
+      payload: {
+        name: user.username,
+        email: user.email,
+        loginUrl: `${process.env.CLIENT_URL || 'http://localhost:5173'}/login`,
+      },
+    }, req.app?.get('logger'));
 
     res.status(201).json({
       message: 'User registered successfully',

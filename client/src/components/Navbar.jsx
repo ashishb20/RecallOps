@@ -2,6 +2,7 @@
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import TaskDropdown from './TaskDropdown';
+import NotificationBell from './NotificationBell';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -36,6 +37,9 @@ const Navbar = () => {
               <p className="text-sm font-medium text-gray-900">{user?.username}</p>
               <p className="text-xs text-gray-500">{user?.email}</p>
             </div>
+            {import.meta.env.VITE_NOTIFICATION_API_URL && (
+              <NotificationBell userId={user?._id || user?.id} />
+            )}
             <TaskDropdown />
 
             {/* Logout */}
