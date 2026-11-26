@@ -1,0 +1,28 @@
+# Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env (keep .env.example)
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# Test reports
+target/surefire-reports/
+target/failsafe-reports/
